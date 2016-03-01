@@ -1,0 +1,37 @@
+这是一个简单的http server，是基于BaseHTTPServer模块实现的，并且提供了一个简单的日志记录功能，更为合适的日志记录的实现可以参看我们的另一个项目my-logger。
+（1）对于post请求， 如果post的数据经过urlencoded编码，那么httpserver会自动解析这些格式的数据，并且存储在一个POST字典中，如果数据格式不为urlencoded，那么数据将原封不动存储在body中；
+    对于get请求，如果包含有请求数据，那么请求的数据的键值对灰存储在GET字典中，如果GET请求数据为空，那么GET字典为空。
+（2）对于每次请求，我们会讲请求数据封装为一个httpRequest对象，将httpRequestHandler作为一个对象，将这两个对象作为参数传递给我们自定义的处理函数，处理函数处理后形成httpResponse对象
+（3）将处理函数单独作为一个view模块进行组织，通过urlrouters将http请求路径和对应的views处理函数相映射起来
+
+
+示例代码如下：
+views.py
+from httpServerArch import httpResponse
+def index(request, conn):
+    response = httpResponse(200, 'OK', {'content-length':len('This is a simple test\n'), 'content-type':'text/html'}, 'This is a simple test\n', conn)
+    return response
+
+def whiteip(request, conn):
+    if request.requestPath.startswith('/set'):
+       if isintance(request.requestData, dict):
+          if 'ip' in request.requestData and 'reason' in request.requestData:
+             ...
+       else:
+          content_type = request.headers.get('content-type', None)
+          if content_type:
+             handle(reuqest.requestData, content_type) 
+             ...
+    elif request.requestPath.startswith('/delete'):
+       ...
+    else request.requestPath.startswith('/get'):
+       ...
+
+
+
+urlrouters.py
+import views
+urls = {
+	'/.*whiteip.*': views.whiteip,
+	'^/$': view.index
+}
